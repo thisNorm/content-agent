@@ -103,18 +103,19 @@ async function run(): Promise<void> {
 
     console.log("Pipeline completed.");
   } catch (error) {
-    const message = error instanceof Error ? `${error.message}\n${error.stack ?? ""}` : String(error);
-    logger.recordProblem(message);
+    const safeMessage = error instanceof Error ? error.message : String(error);
+    logger.recordProblem(safeMessage);
+    console.error(error);
 
     if (!config.dryRun && currentPost) {
       await appendRunLogToPage(
         notion,
         currentPost.pageId,
         logger.toStructuredLog(`[Error] ${currentPost.title}`),
-        {
-          status: "Error",
-          errorMessage: message,
-        },
+          {
+            status: "Error",
+            errorMessage: safeMessage,
+          },
       );
     }
 
