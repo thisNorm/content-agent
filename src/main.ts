@@ -49,7 +49,7 @@ async function run(): Promise<void> {
 
     // ── Content rewrite (Claude) ──────────────────────────────────────────
     // Rewrites body text in the author's own words to avoid publishing
-    // textbook content verbatim (copyright safety).
+    // textbook content verbatim — rewritten to match the Tistory blog posting style.
     // Code blocks and image markers are preserved via placeholder extraction.
     // Fail-closed: throws if rewrite fails so original content is never published.
     let rewrittenMarkdown = transformed.bodyMarkdown;
@@ -60,7 +60,7 @@ async function run(): Promise<void> {
         activePost.title,
         transformed.bodyMarkdown,
       );
-      logger.recordImplementation("Claude로 본문 각색 완료 (저작권 안전화).");
+      logger.recordImplementation("Claude로 본문 각색 완료 (티스토리 포스팅 스타일 적용).");
     }
 
     const finalTransformed = rewrittenMarkdown !== transformed.bodyMarkdown

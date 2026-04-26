@@ -2,7 +2,7 @@
  * Content rewriting using Claude (Anthropic API).
  *
  * Rewrites blog post body markdown so it reads as the author's own explanation
- * rather than a direct copy of textbook material — copyright-safe publishing.
+ * rather than a direct copy of textbook material — styled for Tistory blog publishing.
  *
  * Key safety measures:
  *   1. Code blocks and {{IMAGE:...}} markers are extracted → replaced with stable
