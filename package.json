@@ -1,0 +1,33 @@
+{
+  "name": "content-agent",
+  "version": "0.1.0",
+  "description": "Personal AI content agent for Notion, Tistory, X, and Gemini.",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check": "tsc -p tsconfig.json --noEmit",
+    "dev": "tsx src/main.ts",
+    "start": "node dist/main.js",
+    "login:tistory": "tsx src/login-tistory.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "private": true,
+  "dependencies": {
+    "@google/genai": "^1.50.1",
+    "@notionhq/client": "^5.20.0",
+    "dotenv": "^17.4.2",
+    "marked": "^18.0.2",
+    "playwright": "^1.59.1",
+    "sharp": "^0.34.5",
+    "twitter-api-v2": "^1.29.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.3"
+  }
+}
