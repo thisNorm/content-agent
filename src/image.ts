@@ -28,7 +28,7 @@ export function injectSelectedImages(
     const marker = `{{IMAGE:${decision.blockId}}}`;
     const asset = assetMap.get(decision.blockId);
 
-    if (!decision.use || !asset) {
+    if (!decision.use || !asset || !asset.url) {
       finalHtml = finalHtml.replaceAll(marker, "");
       continue;
     }

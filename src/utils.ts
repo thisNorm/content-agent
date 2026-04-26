@@ -85,6 +85,25 @@ export function trimToLength(input: string, maxLength: number): string {
   return `${input.slice(0, Math.max(0, maxLength - 1)).trimEnd()}…`;
 }
 
+export async function downloadImageToDataUrl(url: string): Promise<string | null> {
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(15_000) });
+    if (!res.ok) return null;
+    const rawContentType = res.headers.get("content-type") ?? "image/jpeg";
+    const contentType = (rawContentType.split(";")[0] ?? "image/jpeg").trim();
+    const arrayBuffer = await res.arrayBuffer();
+    if (arrayBuffer.byteLength > 3 * 1024 * 1024) {
+      console.warn(`[image] Skipping image > 3 MB: ${url.slice(0, 80)}`);
+      return null;
+    }
+    return `data:${contentType};base64,${Buffer.from(arrayBuffer).toString("base64")}`;
+  } catch (error) {
+    console.warn(`[image] Failed to download image: ${String(error)}`);
+    return null;
+  }
+}
+
+
 export async function retry<T>(
   label: string,
   attempts: number,

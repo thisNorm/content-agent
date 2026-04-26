@@ -7,8 +7,8 @@ import { buildXPost, publishToX } from "./publish-x";
 import { publishToTistory } from "./publish-tistory";
 import { createThumbnail } from "./thumbnail";
 import { buildTistoryHtml, transformPost } from "./transform";
-import type { ReadyPost } from "./types";
-import { retry } from "./utils";
+import type { ArticleImageAsset, ReadyPost } from "./types";
+import { downloadImageToDataUrl, retry } from "./utils";
 
 function getPageRef(cliArg: string | undefined, config: { pageUrl?: string; pageId?: string }): string {
   const input = cliArg?.trim() || config.pageUrl?.trim() || config.pageId?.trim();
@@ -47,8 +47,19 @@ async function run(): Promise<void> {
     logger.recordImplementation("본문, X 초안, 이미지 선택, 썸네일 프롬프트를 로컬 규칙 기반으로 생성했습니다.");
 
     const renderedHtml = buildTistoryHtml(transformed);
+
+    // Resolve Notion-hosted images (presigned S3 URLs expire in ~1h).
+    // Download and embed as data URLs so they remain permanently accessible.
+    const resolvedImageAssets = await Promise.all(
+      currentPost.imageAssets.map(async (asset: ArticleImageAsset) => {
+        if (asset.sourceType !== "file" || !asset.url) return asset;
+        const dataUrl = await downloadImageToDataUrl(asset.url);
+        return dataUrl ? { ...asset, url: dataUrl } : { ...asset, url: "" };
+      }),
+    );
+
     const articleHtml = transformed.imageDecisions.length
-      ? injectSelectedImages(renderedHtml, currentPost.imageAssets, transformed.imageDecisions)
+      ? injectSelectedImages(renderedHtml, resolvedImageAssets, transformed.imageDecisions)
       : renderedHtml;
 
     const thumbnail = await createThumbnail(
