@@ -5,8 +5,9 @@ import { RunLogger } from "./logger";
 import { appendRunLogToPage, createNotionClient, fetchPostFromPage, previewOriginalHtml } from "./notion";
 import { buildXPost, publishToX } from "./publish-x";
 import { publishToTistory } from "./publish-tistory";
+import { rewriteBodyMarkdown } from "./rewrite";
 import { createThumbnail } from "./thumbnail";
-import { buildTistoryHtml, transformPost } from "./transform";
+import { buildTistoryHtml, markdownToHtml, transformPost } from "./transform";
 import type { ArticleImageAsset, ReadyPost } from "./types";
 import { downloadImageToDataUrl, retry } from "./utils";
 
@@ -46,7 +47,27 @@ async function run(): Promise<void> {
     const transformed = await transformPost(activePost);
     logger.recordImplementation("본문, X 초안, 이미지 선택, 썸네일 프롬프트를 로컬 규칙 기반으로 생성했습니다.");
 
-    const renderedHtml = buildTistoryHtml(transformed);
+    // ── Content rewrite (Claude) ──────────────────────────────────────────
+    // Rewrites body text in the author's own words to avoid publishing
+    // textbook content verbatim (copyright safety).
+    // Code blocks and image markers are preserved via placeholder extraction.
+    // Fail-closed: throws if rewrite fails so original content is never published.
+    let rewrittenMarkdown = transformed.bodyMarkdown;
+    if (config.rewrite.enabled && config.rewrite.apiKey) {
+      rewrittenMarkdown = await rewriteBodyMarkdown(
+        config.rewrite.apiKey,
+        config.rewrite.model,
+        activePost.title,
+        transformed.bodyMarkdown,
+      );
+      logger.recordImplementation("Claude로 본문 각색 완료 (저작권 안전화).");
+    }
+
+    const finalTransformed = rewrittenMarkdown !== transformed.bodyMarkdown
+      ? { ...transformed, bodyMarkdown: rewrittenMarkdown, bodyHtml: markdownToHtml(rewrittenMarkdown) }
+      : transformed;
+
+    const renderedHtml = buildTistoryHtml(finalTransformed);
 
     // Resolve Notion-hosted images (presigned S3 URLs expire in ~1h).
     // Download and embed as data URLs so they remain permanently accessible.
@@ -58,8 +79,8 @@ async function run(): Promise<void> {
       }),
     );
 
-    const articleHtml = transformed.imageDecisions.length
-      ? injectSelectedImages(renderedHtml, resolvedImageAssets, transformed.imageDecisions)
+    const articleHtml = finalTransformed.imageDecisions.length
+      ? injectSelectedImages(renderedHtml, resolvedImageAssets, finalTransformed.imageDecisions)
       : renderedHtml;
 
     const thumbnail = await createThumbnail(
@@ -71,17 +92,17 @@ async function run(): Promise<void> {
       },
       {
         slug: currentPost.slug,
-        prompt: transformed.thumbnailPrompt,
-        headline: transformed.thumbnailHeadline,
+        prompt: finalTransformed.thumbnailPrompt,
+        headline: finalTransformed.thumbnailHeadline,
       },
     );
     logger.recordImplementation(`썸네일 생성 완료: ${thumbnail.path}`);
 
-    const tistoryTags = buildTistoryTags(activePost, transformed.hashtags);
+    const tistoryTags = buildTistoryTags(activePost, finalTransformed.hashtags);
 
     const tistoryResult = await retry("tistory publish", 2, async () =>
       publishToTistory(config, {
-        title: transformed.title,
+        title: finalTransformed.title,
         html: articleHtml || previewOriginalHtml(activePost),
         thumbnailPath: thumbnail.path,
         slug: activePost.slug,
@@ -90,7 +111,7 @@ async function run(): Promise<void> {
     );
     logger.recordImplementation(`티스토리 발행 처리 완료: ${tistoryResult.url}`);
 
-    const xText = buildXPost(transformed.xPostBody, tistoryResult.url, transformed.hashtags);
+    const xText = buildXPost(finalTransformed.xPostBody, tistoryResult.url, finalTransformed.hashtags);
     const xResult = await retry("x publish", 2, async () => publishToX(config, xText));
     logger.recordImplementation(`X 게시 완료: ${xResult.postId ?? "(unknown id)"}`);
 

@@ -1,3 +1,13 @@
+// ─── Rewrite ─────────────────────────────────────────────────────────────────
+
+export interface RewriteConfig {
+  enabled: boolean;
+  apiKey?: string;
+  model: string;
+}
+
+// ─── Block types ─────────────────────────────────────────────────────────────
+
 export type SupportedBlockType =
   | "heading_1"
   | "heading_2"
@@ -104,6 +114,7 @@ export interface AppConfig {
     headless: boolean;
     timeoutMs: number;
   };
+  rewrite: RewriteConfig;
   x: {
     appKey?: string;
     appSecret?: string;

@@ -287,6 +287,8 @@ function markdownToHtml(markdown: string): string {
   return String(marked.parse(markdown)).trim();
 }
 
+export { markdownToHtml };
+
 export async function transformPost(post: ReadyPost): Promise<TransformedContent> {
   const textSnippets = takeMeaningfulText(post.blocks);
   const headings = takeHeadingTexts(post.blocks);

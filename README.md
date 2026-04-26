@@ -19,7 +19,10 @@ Notion 페이지
 본문·메타데이터 파싱
     ↓  transformPost()       ← 로컬 규칙 기반 (AI 토큰 없음)
 제목 / HTML 구조 / X 초안 / 썸네일 프롬프트 생성
-    ↓  createThumbnail()     ← Gemini Image API
+    ↓  rewriteBodyMarkdown() ← Claude (Anthropic API)
+교재 문체 → 개발자 블로그 말투 각색 (저작권 안전화)
+코드 블록·이미지 마커 원형 보존, 검증 후 fail-closed 발행
+    ↓  createThumbnail()     ← Gemini Image API (썸네일 전용)
 1280×720 썸네일 생성 + sharp 합성
     ↓  publishToTistory()    ← Playwright 브라우저 자동화
 Tistory 발행 → 발행 URL 확보
@@ -37,7 +40,8 @@ Notion 페이지에 실행 로그 기록
 
 - Node.js 18 이상
 - [Notion Integration](https://www.notion.so/my-integrations) API 키 및 대상 페이지 공유
-- [Google AI Studio](https://aistudio.google.com/) Gemini API 키
+- [Google AI Studio](https://aistudio.google.com/) Gemini API 키 (썸네일 생성 전용)
+- [Anthropic Console](https://console.anthropic.com/) API 키 (본문 각색용)
 - Tistory 블로그 계정
 - [X Developer Portal](https://developer.twitter.com/) OAuth 1.0a 앱 키
 
@@ -73,6 +77,13 @@ GEMINI_API_KEY=AIzaxxxxxxxxxxxxxxxx
 GEMINI_IMAGE_MODEL=gemini-2.0-flash-preview-image-generation
 THUMBNAIL_OUTPUT_DIR=assets/thumbnails
 THUMBNAIL_ALLOW_RETRY=false
+
+# ─── Content Rewrite (Claude) ──────────────────
+# Notion 원문(교재 등)을 개발자 블로그 말투로 자동 각색합니다 (저작권 안전화)
+# REWRITE_ENABLED=false 로 설정하면 각색 없이 원문 그대로 발행됩니다
+REWRITE_ENABLED=true
+ANTHROPIC_API_KEY=sk-ant-xxxxxxxxxx
+ANTHROPIC_MODEL=claude-haiku-4-5
 
 # ─── Tistory ───────────────────────────────────
 TISTORY_BASE_URL=https://your-blog.tistory.com
@@ -142,6 +153,7 @@ npm start https://www.notion.so/your-page-id
 | `src/main.ts` | 파이프라인 진입점, 전체 흐름 조율 |
 | `src/notion.ts` | Notion API 클라이언트, 페이지 파싱 |
 | `src/transform.ts` | 본문 → Tistory HTML / X 초안 / 썸네일 프롬프트 변환 (로컬 규칙) |
+| `src/rewrite.ts` | Claude API로 본문 각색 — 교재 문체 → 개발자 블로그 말투 (저작권 안전화) |
 | `src/thumbnail.ts` | Gemini Image API 호출 + sharp 이미지 합성 |
 | `src/publish-tistory.ts` | Playwright 기반 Tistory 자동 발행 |
 | `src/publish-x.ts` | Twitter API v2 포스팅 |
