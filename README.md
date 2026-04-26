@@ -148,6 +148,8 @@ npm start https://www.notion.so/your-page-id
 | `src/image.ts` | 본문 내 이미지 주입 처리 |
 | `src/logger.ts` | 실행 로그 구조화 및 Notion 기록 |
 | `src/config/env.ts` | zod 기반 환경변수 파싱 및 검증 |
+| `src/config/x.ts` | X 포스팅 스타일 가이드 상수 |
+| `src/repair-post-images.ts` | Tistory 포스트 이미지 복구 스크립트 (일회성) |
 
 ---
 
@@ -160,6 +162,7 @@ npm start https://www.notion.so/your-page-id
 | `npm start` | 컴파일된 JS 실행 |
 | `npm run check` | 타입 체크만 실행 |
 | `npm run login:tistory` | Tistory 브라우저 로그인 및 인증 상태 저장 |
+| `npm run repair:images` | 만료된 Tistory 포스트 이미지 복구 (일회성) |
 
 ---
 
@@ -168,6 +171,19 @@ npm start https://www.notion.so/your-page-id
 - **`DRY_RUN=true` (기본값)** — 처음 실행 시 실제 발행이 되지 않습니다. 파이프라인 확인 후 `DRY_RUN=false`로 변경하세요.
 - **Tistory 셀렉터** — Tistory 에디터 업데이트 시 `src/config/selectors.ts`의 CSS 셀렉터를 블로그 환경에 맞게 조정해야 할 수 있습니다.
 - **썸네일 모델** — `gemini-2.0-flash-preview-image-generation`은 프리뷰 모델로, 추후 변경될 수 있습니다.
+
+---
+
+## X 포스팅 스타일
+
+`src/config/x.ts`의 `X_STYLE_GUIDE`에 포스팅 가이드가 정의되어 있습니다.
+
+- **페르소나**: 막 졸업한 주니어 개발자, 성장형 개발 인플루언서
+- **말투**: ~입니다 / ~습니다 (불특정 다수 대상 존댓말)
+- **구조**: 핵심 개념 + 배우며 느낀 점 → 해시태그 2개 → 티스토리 URL
+- **금지**: 특수문자 화살표(`→`, `•`), 해시태그 3개 초과, 홍보성 문구
+
+> X API는 동일 텍스트 반복 전송이나 짧은 시간 내 연속 게시 시 403 응답을 반환할 수 있습니다.
 
 ---
 

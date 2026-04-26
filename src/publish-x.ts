@@ -5,15 +5,19 @@ import type { PipelineConfig, PublishResult } from "./types";
 import { dedupe, trimToLength } from "./utils";
 
 export function buildXPost(body: string, url: string, hashtags: string[]): string {
+  // Max 2 hashtags — more than that looks spammy and hurts engagement
   const tags = dedupe(
     hashtags.map((tag) => (tag.startsWith("#") ? tag : `#${tag.replace(/^#/, "")}`)),
-  ).slice(0, 3);
+  ).slice(0, 2);
 
-  const suffix = [url, tags.join(" ")].filter(Boolean).join("\n");
+  // Fixed order: content → hashtags → link (URL only, no prefix text)
+  const linkLine = url;
+  const tagsLine = tags.join(" ");
+  const suffix = [tagsLine, linkLine].filter(Boolean).join("\n\n");
   const availableForBody = X_MAX_LENGTH - suffix.length - 2;
   const safeBody = trimToLength(body.trim(), Math.max(0, availableForBody));
 
-  return [safeBody, suffix].filter(Boolean).join("\n");
+  return [safeBody, suffix].filter(Boolean).join("\n\n");
 }
 
 export async function publishToX(

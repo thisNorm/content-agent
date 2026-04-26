@@ -86,15 +86,29 @@ function buildHashtags(post: ReadyPost): string[] {
   return ["#개발", "#공부기록"];
 }
 
+/**
+ * Build the X post body.
+ *
+ * Persona: 막 졸업한 주니어 개발자, 성장형 개발 인플루언서
+ * Style: ~입니다/~습니다 말투, 가르치지 않고 함께 공부하는 느낌
+ * Structure: 핵심 개념 1~2개 + 배우며 느낀 점
+ * (hashtags and URL are appended by buildXPost)
+ */
 function buildXPostBody(post: ReadyPost, headings: string[]): string {
-  const focus = headings.slice(0, 3).join(", ");
-  const lines = [
-    `${post.title} 핵심만 다시 정리했습니다.`,
-    focus ? `${focus} 순서로 흐름이 보이게 읽을 수 있게 다듬었습니다.` : "개념, 구조, 흐름이 한 번에 잡히도록 정리했습니다.",
-    "헷갈리던 부분을 빠르게 복습할 때 보기 좋게 정리한 글입니다.",
-  ];
+  const h1 = headings[0] ?? post.title;
+  const h2 = headings[1] ?? "";
 
-  return trimToLength(lines.join("\n"), 240);
+  const openers = [
+    `${h1}${h2 ? `랑 ${h2}` : ""}의 차이가 처음엔 헷갈렸는데, 직접 정리하고 나니까 확실히 잡혔습니다.`,
+    `${post.title}를 공부하면서 ${h1} 개념이 제일 낯설었는데 이제는 납득이 됩니다.`,
+    `${h1}이 무슨 역할인지 몰라서 막혔는데, 구조를 그려보니 바로 이해됐습니다.`,
+  ];
+  const opener = openers[post.title.length % openers.length];
+  const closing = h2
+    ? `${h1}과 ${h2}를 연결해서 보면 전체 흐름이 한 번에 보입니다.`
+    : `${post.title} 흐름을 잡고 나면 다음 개념도 훨씬 수월하게 읽힙니다.`;
+
+  return trimToLength([opener, closing].join("\n"), 200);
 }
 
 function buildThumbnailPrompt(post: ReadyPost, headings: string[], textSnippets: string[]): string {

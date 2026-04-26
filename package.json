@@ -8,7 +8,8 @@
     "check": "tsc -p tsconfig.json --noEmit",
     "dev": "tsx src/main.ts",
     "start": "node dist/main.js",
-    "login:tistory": "tsx src/login-tistory.ts"
+    "login:tistory": "tsx src/login-tistory.ts",
+    "repair:images": "tsx src/repair-post-images.ts"
   },
   "keywords": [],
   "author": "",
