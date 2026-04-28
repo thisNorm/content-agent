@@ -29,6 +29,7 @@ const envSchema = z.object({
   PLAYWRIGHT_AUTH_STATE_PATH: z.string().default("playwright/.auth/tistory.json"),
   PLAYWRIGHT_HEADLESS: z.string().default("true"),
   PLAYWRIGHT_TIMEOUT_MS: z.coerce.number().default(30000),
+  APPEND_RUN_LOGS: z.string().default("false"),
   X_APP_KEY: z.string().optional(),
   X_APP_SECRET: z.string().optional(),
   X_ACCESS_TOKEN: z.string().optional(),
@@ -80,6 +81,7 @@ export function loadConfig(projectRoot = process.cwd()): AppConfig {
       headless: parseBoolean(env.PLAYWRIGHT_HEADLESS, true),
       timeoutMs: env.PLAYWRIGHT_TIMEOUT_MS,
     },
+    appendRunLogs: parseBoolean(env.APPEND_RUN_LOGS, false),
     rewrite: {
       enabled: parseBoolean(env.REWRITE_ENABLED, true),
       apiKey: env.ANTHROPIC_API_KEY,

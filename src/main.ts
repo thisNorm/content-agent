@@ -118,7 +118,7 @@ async function run(): Promise<void> {
     logger.recordResolution("콘텐츠 파이프라인을 정상 완료했습니다.");
     logger.addNextStep("실제 배포 후에는 Tistory 에디터 셀렉터와 발행 URL 회수 로직을 블로그 환경에 맞게 한 번 점검합니다.");
 
-    if (!config.dryRun && currentPost) {
+    if (!config.dryRun && currentPost && config.appendRunLogs) {
       await appendRunLogToPage(
         notion,
         currentPost.pageId,
@@ -139,7 +139,7 @@ async function run(): Promise<void> {
     logger.recordProblem(safeMessage);
     console.error(error);
 
-    if (!config.dryRun && currentPost) {
+    if (!config.dryRun && currentPost && config.appendRunLogs) {
       await appendRunLogToPage(
         notion,
         currentPost.pageId,
